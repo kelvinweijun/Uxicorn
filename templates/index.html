@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uxicorn</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+	<!-- MATHJAX SUPPORT -->
+	<script>
+		MathJax = {
+			tex: {
+				inlineMath: [['$', '$'], ['\\(', '\\)']],
+				displayMath: [['$$', '$$'], ['\\[', '\\]']],
+				processEscapes: true,
+				processEnvironments: true
+			},
+			options: {
+				skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+			},
+			startup: {
+				pageReady: () => {
+					return MathJax.startup.defaultPageReady().then(() => {
+						console.log('MathJax initial typesetting complete');
+					});
+				}
+			}
+		};
+	</script>
+	<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #ffffff;
+            --text-primary: #1f1f1f;
+            --text-secondary: #5f6368;
+            --text-tertiary: #80868b;
+            --border-color: #e8eaed;
+            --accent-color: #616161;
+            --accent-hover: #616161;
+            --user-msg-bg: #1a73e8;
+            --bot-msg-bg: #f1f3f4;
+            --shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+            --shadow-hover: 0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #000000;
+			--bg-secondary: #0a0a0a;
+			--bg-tertiary: #1a1a1a;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0a6;
+            --text-tertiary: #5f6368;
+            --border-color: #3c4043;
+            --accent-color: #616161;
+            --accent-hover: #616161;
+            --user-msg-bg: #8ab4f8;
+            --bot-msg-bg: #2a2a2a;
+            --shadow: 0 1px 2px 0 rgba(0,0,0,.3), 0 1px 3px 1px rgba(0,0,0,.15);
+            --shadow-hover: 0 1px 3px 0 rgba(0,0,0,.3), 0 4px 8px 3px rgba(0,0,0,.15);
+        }
+		
+		.logo-icon {
+			width: 60px;
+			height: 60px;
+			vertical-align: middle;
+		}
+		
+		.file-icon {
+			width: 30px;
+			height: 35px;
+			vertical-align: middle;
+		}
+		
+		.upload-icon-img {
+			width: 50px;
+			height: 60px;
+			vertical-align: middle;
+		}
+		
+		.icon-img {
+			width: 65px;
+			height: 65px;
+			vertical-align: middle;
+		}
+
+        body {
+            font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: background 0.2s;
+            font-size: 20px;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        /* Start Page - Modified for center-left alignment */
+        .start-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            opacity: 1;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .start-page.hidden {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+
+        .start-title {
+            font-size: 56px;
+            font-weight: 400;
+            margin-bottom: 250px;
+            color: var(--text-primary);
+            text-align: left;
+        }
+
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 32px;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .feature-card-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .feature-card-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .feature-card-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Start Page Tools Bar - Now below input */
+        .start-tools-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            z-index: 50;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 80px 24px 180px;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .chat-container.active {
+            opacity: 1;
+        }
+
+        .message {
+            margin-bottom: 32px;
+            display: flex;
+            gap: 16px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .message.bot .message-avatar {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .message-content {
+            flex: 1;
+            max-width: 100%;
+        }
+
+        .message-text {
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 15px;
+        }
+		
+		/* Markdown formatting styles */
+		.message-text p {
+			margin: 0.5em 0;
+		}
+
+		.message-text strong {
+			font-weight: 600;
+		}
+
+		.message-text em {
+			font-style: italic;
+		}
+
+		.message-text code {
+			background-color: rgba(0, 0, 0, 0.08);
+			padding: 2px 6px;
+			border-radius: 4px;
+			font-family: 'Monaco', 'Courier New', monospace;
+			font-size: 0.9em;
+		}
+
+		[data-theme="dark"] .message-text code {
+			background-color: rgba(255, 255, 255, 0.1);
+		}
+
+		.message-text pre {
+			background-color: rgba(0, 0, 0, 0.05);
+			padding: 12px;
+			border-radius: 8px;
+			overflow-x: auto;
+			margin: 8px 0;
+			border-left: 3px solid var(--accent-color);
+		}
+
+		[data-theme="dark"] .message-text pre {
+			background-color: rgba(255, 255, 255, 0.05);
+		}
+
+		.message-text pre code {
+			background: none;
+			padding: 0;
+		}
+
+		.message-text h1, .message-text h2, .message-text h3 {
+			margin-top: 0.8em;
+			margin-bottom: 0.4em;
+			font-weight: 500;
+		}
+
+		.message-text h1 { font-size: 1.5em; }
+		.message-text h2 { font-size: 1.3em; }
+		.message-text h3 { font-size: 1.1em; }
+
+		.message-text ul, .message-text ol {
+			margin: 0.5em 0;
+			padding-left: 1.5em;
+		}
+
+		.message-text li {
+			margin: 0.3em 0;
+		}
+
+		.message-text blockquote {
+			border-left: 3px solid var(--text-tertiary);
+			padding-left: 1em;
+			margin: 0.5em 0;
+			color: var(--text-secondary);
+			font-style: italic;
+		}
+
+		.message-text a {
+			color: var(--accent-color);
+			text-decoration: none;
+		}
+
+		.message-text a:hover {
+			text-decoration: underline;
+		}
+
+		.message-text table {
+			border-collapse: collapse;
+			margin: 0.5em 0;
+			width: 100%;
+		}
+
+		.message-text th, .message-text td {
+			border: 1px solid var(--border-color);
+			padding: 8px;
+			text-align: left;
+		}
+
+		.message-text th {
+			background-color: var(--bg-secondary);
+			font-weight: 500;
+		}
+
+		/* Chart Container Styles */
+		.chart-container {
+			margin: 16px 0;
+			padding: 20px;
+			background: var(--bg-secondary);
+			border-radius: 12px;
+			border: 1px solid var(--border-color);
+			overflow: hidden;
+		}
+
+		.chart-container img {
+			max-width: 100%;
+			height: auto;
+			border-radius: 8px;
+			display: block;
+			margin: 0 auto;
+		}
+
+		.chart-container .plotly-graph-div {
+			width: 100%;
+			min-height: 400px;
+		}
+
+		[data-theme="dark"] .chart-container {
+			background: var(--bg-tertiary);
+		}
+
+		/* Keep user messages without markdown formatting */
+		.message.user .message-text * {
+			all: unset;
+			display: inline;
+			color: inherit;
+		}
+
+        .message.user .message-text {
+            background: var(--user-msg-bg);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            display: inline-block;
+            max-width: fit-content;
+            float: right;
+        }
+
+        .context-badges {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Input Container - Modified for start page */
+        .input-container {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: var(--bg-primary);
+            padding: 24px;
+            border-top: 1px solid var(--border-color);
+            z-index: 90 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .input-container.centered {
+            position: fixed !important;
+            width: 100%;
+            max-width: 800px;
+            border: none;
+            background: transparent;
+            z-index: 10;
+            padding: 0 40px;
+            margin: 0;
+            top: 50% !important;
+            left: 50% !important;
+            bottom: auto !important;
+            right: auto !important;
+            transform: translate(-50%, -50%);
+        }
+
+        .input-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .input-container.centered .input-wrapper {
+            max-width: 800px;
+            margin: 0;
+        }
+
+        .input-form {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 8px 8px 8px 20px;
+            box-shadow: var(--shadow);
+            transition: box-shadow 0.2s;
+        }
+
+        .input-form:focus-within {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .input-form input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            outline: none;
+            color: var(--text-primary);
+            padding: 12px 0;
+        }
+
+        .input-form input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--accent-color);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        .send-btn:disabled {
+            background: var(--text-tertiary);
+            cursor: not-allowed;
+        }
+
+        .tools-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-btn.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .tool-btn:hover {
+            border-color: var(--accent-color);
+        }
+		
+		/* Dash Dashboard Styles */
+		.dash-container {
+			background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+			border: 2px solid var(--accent-color);
+			padding: 30px;
+			text-align: center;
+		}
+
+		.dash-container h3 {
+			margin-bottom: 16px;
+			font-size: 20px;
+		}
+
+		.dash-link {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 14px 28px;
+			background: var(--accent-color);
+			color: white;
+			text-decoration: none;
+			border-radius: 8px;
+			font-weight: 500;
+			transition: all 0.2s;
+			box-shadow: var(--shadow);
+		}
+
+		.dash-link:hover {
+			background: var(--accent-hover);
+			box-shadow: var(--shadow-hover);
+			transform: translateY(-2px);
+		}
+
+		.dash-info {
+			margin-top: 16px;
+			padding: 12px;
+			background: var(--bg-primary);
+			border-radius: 8px;
+			border: 1px solid var(--border-color);
+		}
+
+		.dash-info p {
+			margin: 4px 0;
+			font-size: 13px;
+			color: var(--text-secondary);
+		}
+
+		.dash-status {
+			display: inline-block;
+			width: 8px;
+			height: 8px;
+			background: #1e8e3e;
+			border-radius: 50%;
+			margin-right: 6px;
+			animation: pulse 2s infinite;
+		}
+
+		@keyframes pulse {
+			0%, 100% { opacity: 1; }
+			50% { opacity: 0.5; }
+		}
+
+        /* Upload Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-hover);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 48px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 24px;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-color);
+            background: var(--bg-secondary);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 20px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+        }
+
+        .status-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 12px;
+        }
+
+        .status-text.success {
+            color: #1e8e3e;
+        }
+
+        .status-text.error {
+            color: #d93025;
+        }
+
+        /* Loading Animation */
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+            padding: 12px 0;
+        }
+
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-tertiary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .start-page {
+                padding-left: 40px;
+                align-items: center;
+            }
+
+            .start-title {
+                font-size: 40px;
+                text-align: center;
+            }
+
+            .feature-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 0 16px;
+            }
+
+            .chat-container {
+                padding: 80px 16px 180px;
+            }
+
+            .start-tools-bar {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .chart-container .plotly-graph-div {
+                min-height: 300px;
+            }
+
+            .input-container.centered {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+        }
+		
+		/* Thinking Process Panel Styles */
+        #thinkingProcessContainer {
+            transition: transform 0.3s ease;
+        }
+
+        #thinkingProcessContainer.hidden {
+            transform: translateX(100%);
+        }
+
+        .thinking-step {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .thinking-step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .thinking-code {
+            background: var(--bg-tertiary);
+            border-left: 3px solid var(--accent-color);
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 8px 0;
+            font-size: 11px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .thinking-result {
+            background: var(--bg-tertiary);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 8px 0;
+            font-size: 11px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .thinking-result.success {
+            border-left: 3px solid #1e8e3e;
+        }
+
+        .thinking-result.error {
+            border-left: 3px solid #d93025;
+        }
+
+        .thinking-raw {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 8px 0;
+            font-size: 11px;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        [data-theme="dark"] .thinking-raw {
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            #thinkingProcessContainer {
+                width: 100%;
+                left: 0;
+            }
+        }
+		/* Math Expression Styles */
+        .message-text .MathJax {
+            font-size: 1em !important;
+        }
+
+        .message-text mjx-container {
+            display: inline-block;
+            margin: 0.2em 0;
+        }
+
+        .message-text mjx-container[display="true"] {
+            display: block;
+            margin: 0.5em 0;
+            text-align: center;
+        }
+
+        /* Ensure math doesn't break in user messages */
+        .message.user .message-text .MathJax,
+        .message.user .message-text mjx-container {
+            color: white !important;
+        }
+
+        @media (max-width: 768px) {
+    </style>
+</head>
+<body data-theme="light">
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header" id="header">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='icons/icon.png') }}" alt="logo" class="logo-icon">
+                <span>Uxicorn</span>
+            </div>
+            <div class="header-actions">
+				<button class="icon-btn" onclick="toggleUploadModal('pdf')" title="Upload PDF">
+					<img src="{{ url_for('static', filename='icons/pdf.png') }}" alt="PDF" class="file-icon">
+				</button>
+				<button class="icon-btn" onclick="toggleUploadModal('excel')" title="Upload Excel">
+					<img src="{{ url_for('static', filename='icons/excel.png') }}" alt="Excel" class="file-icon">
+				</button>
+				<!-- ADD THIS BUTTON -->
+				<button class="icon-btn" id="thinkingPanelBtn" onclick="toggleThinkingPanel()" title="Show Thinking Process" style="display: none;">
+					<img src="{{ url_for('static', filename='icons/brain.png') }}" alt="Thinking" class="file-icon">
+				</button>
+				<button class="icon-btn" onclick="toggleTheme()" title="Toggle theme" id="themeBtn">
+					<img src="{{ url_for('static', filename='icons/dark.png') }}" alt="Theme" class="icon-img" id="themeIcon">
+				</button>
+			</div>
+        </div>
+
+        <!-- Start Page -->
+        <div class="start-page" id="startPage">
+            <h1 class="start-title">Uxicorn</h1>
+        </div>
+        
+        <!-- Input Container - Now outside start page -->
+        <div class="input-container centered" id="inputContainer">
+            <div class="input-wrapper">
+                <form class="input-form" onsubmit="sendMessage(event)">
+                    <input type="text" id="userInput" placeholder="Ask me anything or visualize your data..." autocomplete="off">
+                    <button type="submit" class="send-btn" id="sendBtn">
+                        <span>➤</span>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Tools Bar below input -->
+            <div class="start-tools-bar">
+                <button class="tool-btn active" id="startWebSearchBtn" onclick="toggleWebSearch()">
+                    Web Search
+                </button>
+                <button class="tool-btn active" id="startPdfContextBtn" onclick="togglePdfContext()">
+                    PDF Context
+                </button>
+                <button class="tool-btn" id="startAgentBtn" onclick="toggleAgent()">
+                    Agent Mode
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="chat-container" id="chatContainer">
+        </div>
+		
+		<div id="thinkingProcessContainer" style="display: none; position: fixed; top: 64px; right: 0; width: 450px; height: calc(100vh - 64px); background: var(--bg-secondary); border-left: 1px solid var(--border-color); overflow-y: auto; z-index: 50; padding: 20px; box-shadow: -2px 0 8px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; position: sticky; top: 0; background: var(--bg-secondary); padding-bottom: 12px; border-bottom: 1px solid var(--border-color); z-index: 10;">
+                <h3 style="margin: 0; font-size: 16px; color: var(--text-primary);">Thinking Process</h3>
+                <button onclick="toggleThinkingPanel()" style="background: none; border: none; cursor: pointer; font-size: 20px; color: var(--text-secondary);">✕</button>
+            </div>
+            <div id="thinkingContent" style="font-family: monospace; font-size: 12px; color: var(--text-primary);">
+                <!-- Thinking content will be inserted here -->
+            </div>
+        </div>
+
+        <!-- PDF Upload Modal -->
+        <div class="modal" id="uploadModalPdf">
+            <div class="modal-content">
+                <h2 class="modal-title">Upload PDF Document</h2>
+                <div class="upload-area" onclick="document.getElementById('pdfFile').click()">
+                    <div class="upload-icon"><img src="{{ url_for('static', filename='icons/pdf.png') }}" alt="PDF" class="upload-icon-img"></div>
+                    <div id="fileNamePdf" style="color: var(--text-secondary);">Click to select a PDF file</div>
+                    <input type="file" id="pdfFile" accept=".pdf" style="display: none;" onchange="handleFileSelect('pdf')">
+                </div>
+                <div id="uploadStatusPdf" class="status-text"></div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="toggleUploadModal('pdf')">Cancel</button>
+                    <button class="btn btn-primary" onclick="uploadFile('pdf')" id="uploadBtnPdf" disabled>Upload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Excel Upload Modal -->
+        <div class="modal" id="uploadModalExcel">
+            <div class="modal-content">
+                <h2 class="modal-title">Upload Excel File</h2>
+                <div class="upload-area" onclick="document.getElementById('excelFile').click()">
+                    <div class="upload-icon"><img src="{{ url_for('static', filename='icons/excel.png') }}" alt="Excel" class="upload-icon-img"></div>
+                    <div id="fileNameExcel" style="color: var(--text-secondary);">Click to select an Excel file (.xlsx, .xls)</div>
+                    <input type="file" id="excelFile" accept=".xlsx,.xls" style="display: none;" onchange="handleFileSelect('excel')">
+                </div>
+                <div id="uploadStatusExcel" class="status-text"></div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="toggleUploadModal('excel')">Cancel</button>
+                    <button class="btn btn-primary" onclick="uploadFile('excel')" id="uploadBtnExcel" disabled>Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const startPage = document.getElementById('startPage');
+        const inputContainer = document.getElementById('inputContainer');
+        const header = document.getElementById('header');
+		const ICON_DARK = "{{ url_for('static', filename='icons/dark.png') }}";
+		const ICON_LIGHT = "{{ url_for('static', filename='icons/light.png') }}";
+        
+        let useWebSearch = true;
+        let usePdfContext = true;
+        let useAgent = false;
+        let chatStarted = false;
+        let chartCounter = 0;
+
+        // Theme management
+		function toggleTheme() {
+			const body = document.body;
+			const currentTheme = body.getAttribute('data-theme');
+			const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+			body.setAttribute('data-theme', newTheme);
+
+			const themeIcon = document.getElementById('themeIcon');
+			themeIcon.src = newTheme === 'light' ? ICON_DARK : ICON_LIGHT;
+
+			localStorage.setItem('theme', newTheme);
+		}
+
+		// Load saved theme
+		const savedTheme = localStorage.getItem('theme') || 'light';
+		document.body.setAttribute('data-theme', savedTheme);
+
+		const themeIcon = document.getElementById('themeIcon');
+		themeIcon.src = savedTheme === 'light' ? ICON_DARK : ICON_LIGHT;
+
+		function toggleUploadModal(type) {
+			const modal = document.getElementById(
+				'uploadModal' + type.charAt(0).toUpperCase() + type.slice(1)
+			);
+			modal.classList.toggle('active');
+
+			const status = document.getElementById(
+				'uploadStatus' + type.charAt(0).toUpperCase() + type.slice(1)
+			);
+			status.textContent = '';
+			status.className = 'status-text';
+		}
+
+        function handleFileSelect(type) {
+            const fileInput = document.getElementById(type + 'File');
+            const fileName = document.getElementById('fileName' + type.charAt(0).toUpperCase() + type.slice(1));
+            const uploadBtn = document.getElementById('uploadBtn' + type.charAt(0).toUpperCase() + type.slice(1));
+            
+            if (fileInput.files.length > 0) {
+                fileName.textContent = fileInput.files[0].name;
+                uploadBtn.disabled = false;
+            }
+        }
+
+        async function uploadFile(type) {
+            const fileInput = document.getElementById(type + 'File');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append(type, file);
+
+            const statusElement = document.getElementById('uploadStatus' + type.charAt(0).toUpperCase() + type.slice(1));
+            const uploadBtn = document.getElementById('uploadBtn' + type.charAt(0).toUpperCase() + type.slice(1));
+            
+            statusElement.textContent = type === 'pdf' ? 'Processing PDF...' : 'Processing Excel file...';
+            statusElement.className = 'status-text';
+            uploadBtn.disabled = true;
+
+            const startTime = Date.now();
+
+            try {
+                const endpoint = type === 'pdf' ? '/upload' : '/upload_excel';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+                
+                if (data.success) {
+                    let successMsg = '';
+                    if (type === 'pdf') {
+                        successMsg = `✓ Processed ${data.chunks} chunks in ${elapsed}s`;
+                    } else {
+                        successMsg = `✓ Loaded ${data.sheets} sheet(s), ${data.total_rows} rows in ${elapsed}s`;
+                    }
+                    statusElement.textContent = successMsg;
+                    statusElement.className = 'status-text success';
+                    setTimeout(() => toggleUploadModal(type), 2000);
+                } else {
+                    statusElement.textContent = '✗ ' + data.error;
+                    statusElement.className = 'status-text error';
+                    uploadBtn.disabled = false;
+                }
+            } catch (error) {
+                statusElement.textContent = '✗ Upload failed: ' + error.message;
+                statusElement.className = 'status-text error';
+                uploadBtn.disabled = false;
+            }
+        }
+
+        function toggleWebSearch() {
+            useWebSearch = !useWebSearch;
+            // Try both start page and chat page button IDs
+            const startBtn = document.getElementById('startWebSearchBtn');
+            const chatBtn = document.getElementById('webSearchBtn');
+            if (startBtn) startBtn.classList.toggle('active');
+            if (chatBtn) chatBtn.classList.toggle('active');
+        }
+
+        function togglePdfContext() {
+            usePdfContext = !usePdfContext;
+            // Try both start page and chat page button IDs
+            const startBtn = document.getElementById('startPdfContextBtn');
+            const chatBtn = document.getElementById('pdfContextBtn');
+            if (startBtn) startBtn.classList.toggle('active');
+            if (chatBtn) chatBtn.classList.toggle('active');
+        }
+
+        function toggleAgent() {
+            useAgent = !useAgent;
+            // Try both start page and chat page button IDs
+            const startBtn = document.getElementById('startAgentBtn');
+            const chatBtn = document.getElementById('agentBtn');
+            if (startBtn) startBtn.classList.toggle('active');
+            if (chatBtn) chatBtn.classList.toggle('active');
+        }
+
+        function startChat() {
+            if (!chatStarted) {
+                chatStarted = true;
+                startPage.classList.add('hidden');
+                chatContainer.classList.add('active');
+                
+                // Move input container to bottom
+                inputContainer.classList.remove('centered');
+                
+                // Reset transform and ensure proper positioning
+                inputContainer.style.transform = 'none';
+                inputContainer.style.top = 'auto';
+                inputContainer.style.bottom = '0';
+                inputContainer.style.left = '0';
+                inputContainer.style.right = '0';
+                inputContainer.style.padding = '24px';
+                
+                // Create and add tools bar for chat mode
+                // Remove start-tools-bar and replace with chat tools-bar
+                const startToolsBar = inputContainer.querySelector('.start-tools-bar');
+                if (startToolsBar) {
+                    startToolsBar.remove();
+                }
+                
+                const toolsBar = document.createElement('div');
+                toolsBar.className = 'tools-bar';
+                toolsBar.id = 'toolsBar';
+                toolsBar.innerHTML = `
+                    <button class="tool-btn ${useWebSearch ? 'active' : ''}" id="webSearchBtn" onclick="toggleWebSearch()">
+                        Web Search
+                    </button>
+                    <button class="tool-btn ${usePdfContext ? 'active' : ''}" id="pdfContextBtn" onclick="togglePdfContext()">
+                        PDF Context
+                    </button>
+                    <button class="tool-btn ${useAgent ? 'active' : ''}" id="agentBtn" onclick="toggleAgent()">
+                        Agent Mode
+                    </button>
+                `;
+                inputContainer.insertBefore(toolsBar, inputContainer.firstChild);
+            }
+        }
+
+        async function sendMessage(event) {
+            event.preventDefault();
+            
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            startChat();
+
+            addMessage(message, 'user');
+            userInput.value = '';
+            sendBtn.disabled = true;
+
+            const loadingId = addLoading();
+            const startTime = Date.now();
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        message,
+                        use_web_search: useWebSearch,
+                        use_pdf_context: usePdfContext,
+                        use_agent: useAgent,
+                        max_agent_steps: 5
+                    })
+                });
+
+                const data = await response.json();
+                removeLoading(loadingId);
+
+                const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+                if (data.success) {
+					addMessage(
+						data.response, 
+						'bot', 
+						data.pdf_context_used, 
+						data.web_context_used,
+						data.excel_context_used,
+						data.retrieval_time, 
+						totalTime,
+						data.agent_mode,
+						data.agent_steps,
+						data.charts || []
+					);
+					
+					// NEW: Display thinking process if agent mode
+					if (data.agent_mode) {
+						displayThinkingProcess(data);
+					} else {
+						document.getElementById('thinkingPanelBtn').style.display = 'none';
+					}
+				} else {
+                    addMessage('Error: ' + data.error, 'bot');
+                }
+            } catch (error) {
+                removeLoading(loadingId);
+                addMessage('Error: ' + error.message, 'bot');
+            }
+
+            sendBtn.disabled = false;
+            userInput.focus();
+        }
+
+        function addMessage(text, type, pdfUsed = false, webUsed = false, excelUsed = false, retrievalTime = null, totalTime = null, agentMode = false, agentSteps = 0, charts = []) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + type;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = type === 'user' ? '👤' : (agentMode ? '🤖' : '💬');
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            const textDiv = document.createElement('div');
+			textDiv.className = 'message-text';
+
+			if (type === 'bot') {
+				textDiv.innerHTML = text;
+				
+				// NEW: Process math expressions with MathJax after DOM insertion
+				setTimeout(() => {
+					if (window.MathJax && window.MathJax.typesetPromise) {
+						MathJax.typesetPromise([textDiv]).catch((err) => {
+							console.log('MathJax error:', err);
+						});
+					}
+				}, 100);
+			} else {
+				textDiv.textContent = text;
+			}
+
+			content.appendChild(textDiv);
+            
+            // Add charts if any
+			if (charts && charts.length > 0 && type === 'bot') {
+				charts.forEach(chart => {
+					const chartDiv = document.createElement('div');
+					chartDiv.className = 'chart-container';
+					chartDiv.id = `chart-${chartCounter++}`;
+					
+					if (chart.type === 'matplotlib') {
+						const img = document.createElement('img');
+						img.src = `data:image/png;base64,${chart.image_b64}`;
+						img.alt = 'Generated Chart';
+						chartDiv.appendChild(img);
+					} else if (chart.type === 'plotly') {
+						const plotDiv = document.createElement('div');
+						plotDiv.className = 'plotly-chart';
+						chartDiv.appendChild(plotDiv);
+						
+						// Render plotly chart after DOM insertion
+						setTimeout(() => {
+							try {
+								const figData = JSON.parse(chart.figure_json);
+								Plotly.newPlot(plotDiv, figData.data, figData.layout, {
+									responsive: true,
+									displayModeBar: true,
+									modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+									displaylogo: false
+								});
+							} catch (error) {
+								console.error('Error rendering Plotly chart:', error);
+								plotDiv.textContent = 'Error rendering chart';
+							}
+						}, 100);
+					}
+					// ADD THIS SECTION FOR DASH
+					else if (chart.type === 'dash') {
+						chartDiv.innerHTML = `
+							<div style="padding: 20px; text-align: center;">
+								<h3 style="color: var(--accent-color); margin-bottom: 12px;">
+									Interactive Dashboard Created
+								</h3>
+								<p style="color: var(--text-secondary); margin-bottom: 16px;">
+									Your Dash dashboard is now running on a separate server.
+								</p>
+								<a href="${chart.url}" target="_blank" style="
+									display: inline-block;
+									padding: 12px 24px;
+									background: var(--accent-color);
+									color: white;
+									text-decoration: none;
+									border-radius: 8px;
+									font-weight: 500;
+									transition: background 0.2s;
+								" onmouseover="this.style.background='var(--accent-hover)'" 
+								   onmouseout="this.style.background='var(--accent-color)'">
+									Open Dashboard (Port ${chart.port})
+								</a>
+								<p style="color: var(--text-tertiary); margin-top: 12px; font-size: 12px;">
+									Dashboard ID: ${chart.id}
+								</p>
+							</div>
+						`;
+					}
+					
+					content.appendChild(chartDiv);
+				});
+			}
+            
+            if ((pdfUsed || webUsed || excelUsed || retrievalTime || agentMode) && type === 'bot') {
+                const badges = document.createElement('div');
+                badges.className = 'context-badges';
+                
+                if (pdfUsed) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    badge.innerHTML = 'PDF Context';
+                    badges.appendChild(badge);
+                }
+                
+                if (excelUsed) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    badge.innerHTML = 'Excel Data';
+                    badges.appendChild(badge);
+                }
+                
+                if (webUsed) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    badge.innerHTML = 'Web Search';
+                    badges.appendChild(badge);
+                }
+                
+                if (agentMode && agentSteps > 0) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    badge.innerHTML = `Agent (${agentSteps} steps)`;
+                    badges.appendChild(badge);
+                }
+
+                if (charts && charts.length > 0) {
+					const badge = document.createElement('span');
+					badge.className = 'badge';
+					
+					// Count different chart types
+					const dashCount = charts.filter(c => c.type === 'dash').length;
+					const chartCount = charts.filter(c => c.type !== 'dash').length;
+					
+					if (dashCount > 0 && chartCount > 0) {
+						badge.innerHTML = `${chartCount} chart${chartCount > 1 ? 's' : ''} + ${dashCount} dashboard${dashCount > 1 ? 's' : ''}`;
+					} else if (dashCount > 0) {
+						badge.innerHTML = `${dashCount} dashboard${dashCount > 1 ? 's' : ''}`;
+					} else {
+						badge.innerHTML = `${chartCount} chart${chartCount > 1 ? 's' : ''}`;
+					}
+					
+					badges.appendChild(badge);
+				}
+                
+                if (retrievalTime && totalTime) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    badge.innerHTML = `${totalTime}s`;
+                    badges.appendChild(badge);
+                }
+                
+                content.appendChild(badges);
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message bot';
+            loadingDiv.id = 'loading-' + Date.now();
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = useAgent ? '🤖' : '💬';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+            
+            loadingDiv.appendChild(avatar);
+            loadingDiv.appendChild(content);
+            chatContainer.appendChild(loadingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            return loadingDiv.id;
+        }
+
+        function removeLoading(id) {
+            const loading = document.getElementById(id);
+            if (loading) loading.remove();
+        }
+        
+        function toggleThinkingPanel() {
+            const panel = document.getElementById('thinkingProcessContainer');
+            const btn = document.getElementById('thinkingPanelBtn');
+            
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                btn.style.background = 'var(--bg-secondary)';
+            } else {
+                panel.style.display = 'none';
+                btn.style.background = 'transparent';
+            }
+        }
+
+        function escapeHtml(text) {
+			const div = document.createElement('div');
+			div.textContent = text;
+			return div.innerHTML;
+		}
+
+		function preserveMathInHtml(text) {
+			// For displaying text that might contain math
+			// Don't escape $ signs that are part of LaTeX
+			return text
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#039;');
+		}
+
+        function displayThinkingProcess(data) {
+            const panel = document.getElementById('thinkingProcessContainer');
+            const content = document.getElementById('thinkingContent');
+            const btn = document.getElementById('thinkingPanelBtn');
+            
+            if (!data.execution_log || data.execution_log.length === 0) {
+                panel.style.display = 'none';
+                btn.style.display = 'none';
+                return;
+            }
+            
+            btn.style.display = 'flex'; // Show the button
+            
+            let html = '';
+            
+            // Display raw thinking process if available
+            if (data.thinking_process && data.thinking_process.length > 0) {
+                html += '<div style="margin-bottom: 20px;"><h4 style="color: var(--accent-color); margin-bottom: 12px; font-size: 14px;">💭 Internal Reasoning</h4>';
+                data.thinking_process.forEach((think) => {
+                    html += `
+                        <div class="thinking-step">
+                            <div class="thinking-step-header">
+                                <span>Step ${think.step}</span>
+                            </div>
+                            <div class="thinking-raw">${escapeHtml(think.thinking)}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            // Display execution log
+            html += '<h4 style="color: var(--accent-color); margin-bottom: 12px; font-size: 14px;">Execution Log</h4>';
+            
+            data.execution_log.forEach((log) => {
+                const icon = log.success ? 'SUCCESS' : 'FAILED';
+                const typeLabel = log.type.replace(/_/g, ' ').toUpperCase();
+                
+                html += `
+                    <div class="thinking-step">
+                        <div class="thinking-step-header">
+                            <span>${icon} Step ${log.step}: ${typeLabel}</span>
+                            <span style="font-size: 11px; color: var(--text-tertiary);">${log.execution_time.toFixed(3)}s</span>
+                        </div>
+                `;
+                
+                // Show query for retrieval
+                if (log.query) {
+                    html += `<div style="margin: 8px 0; font-size: 11px;"><strong>Query:</strong> ${escapeHtml(log.query)}</div>`;
+                }
+                
+                // Show analysis type
+                if (log.analysis_type) {
+                    html += `<div style="margin: 8px 0; font-size: 11px;"><strong>Type:</strong> ${log.analysis_type}</div>`;
+                }
+                
+                // Show code if present
+                if (log.code) {
+                    html += `
+                        <div style="margin-top: 8px;">
+                            <strong style="font-size: 11px; color: var(--text-secondary);">Code:</strong>
+                            <div class="thinking-code">${escapeHtml(log.code)}</div>
+                        </div>
+                    `;
+                }
+                
+                // Show chart type
+                if (log.chart_type) {
+                    html += `<div style="margin: 8px 0; font-size: 11px;"><strong>Chart Type:</strong> ${log.chart_type}</div>`;
+                }
+                
+                // Show result (preserve math if present)
+				const resultHtml = log.result.includes('$') ? preserveMathInHtml(log.result) : escapeHtml(log.result);
+				html += `
+					<div style="margin-top: 8px;">
+						<strong style="font-size: 11px; color: var(--text-secondary);">Result:</strong>
+						<div class="thinking-result ${log.success ? 'success' : 'error'}">${resultHtml}</div>
+					</div>
+				`;
+                
+                html += '</div>';
+            });
+            
+            // Display memory/reasoning steps
+            if (data.memory && data.memory.length > 0) {
+                html += '<h4 style="color: var(--accent-color); margin: 20px 0 12px 0; font-size: 14px;">📝 Agent Memory</h4>';
+                data.memory.forEach((mem, idx) => {
+                    html += `
+                        <div class="thinking-step">
+                            <div style="font-size: 11px;"><strong>Step ${idx + 1}:</strong></div>
+                            <div style="margin-top: 4px; font-size: 11px;">${escapeHtml(mem)}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            content.innerHTML = html;
+
+			// NEW: Process math in thinking panel
+			setTimeout(() => {
+				if (window.MathJax && window.MathJax.typesetPromise) {
+					MathJax.typesetPromise([content]).catch((err) => {
+						console.log('MathJax error in thinking panel:', err);
+					});
+				}
+			}, 100);
+        }
+
+        // Focus input on load
+        userInput.focus();
+    </script>
+</body>
+</html>
